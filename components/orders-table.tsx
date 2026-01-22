@@ -1,0 +1,268 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Eye, ChevronRight } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
+
+interface Profile {
+  id: string
+  email: string
+  full_name?: string
+  username?: string
+  avatar_url?: string
+  website?: string
+  bio?: string
+  phone?: string
+  address?: any
+  preferences?: any
+  created_at: string
+  updated_at: string
+}
+
+interface Order {
+  id: string
+  order_number: string
+  customer_id?: string
+  total_amount: number
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled"
+  payment_status: "pending" | "paid" | "failed" | "refunded"
+  shipping_address: any
+  billing_address: any
+  notes?: string
+  tracking_number?: string
+  shipped_at?: string
+  delivered_at?: string
+  created_at: string
+  updated_at: string
+  user_id?: string
+  profile?: Profile
+  profiles?: Profile
+}
+
+
+const statusConfig = {
+  pending: {
+    label: "Pending",
+    variant: "outline" as const,
+    color: "text-yellow-500 bg-yellow-500/10 border-yellow-500/30",
+  },
+  processing: {
+    label: "Processing",
+    variant: "outline" as const,
+    color: "text-blue-500 bg-blue-500/10 border-blue-500/30",
+  },
+  shipped: {
+    label: "Shipped",
+    variant: "outline" as const,
+    color: "text-indigo-500 bg-indigo-500/10 border-indigo-500/30",
+  },
+  delivered: {
+    label: "Delivered",
+    variant: "outline" as const,
+    color: "text-green-500 bg-green-500/10 border-green-500/30",
+  },
+  cancelled: { 
+    label: "Cancelled", 
+    variant: "outline" as const, 
+    color: "text-red-500 bg-red-500/10 border-red-500/30" 
+  },
+}
+
+interface OrdersTableProps {
+  searchTerm: string
+  statusFilter: string
+}
+
+export function OrdersTable({ searchTerm, statusFilter }: OrdersTableProps) {
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchOrders()
+  }, [])
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      // Use the admin_orders view which already has customer information
+      console.log('Fetching from admin_orders view...')
+      const { data, error } = await supabase
+        .from('admin_orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      console.log('Admin orders view result:', { data, error })
+
+      if (error) throw error
+
+      // Transform the data to match our Order interface
+      const transformedData = data?.map(order => ({
+        ...order,
+        profile: {
+          id: order.user_id,
+          email: order.customer_email,
+          full_name: order.customer_name,
+          phone: order.customer_phone || ''
+        }
+      })) || []
+
+      setOrders(transformedData)
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+      console.error('Error details:', JSON.stringify(error, null, 2))
+      console.error('Error type:', typeof error)
+      
+      let errorMessage = 'Failed to fetch orders'
+      if (error instanceof Error) {
+        errorMessage = `Failed to fetch orders: ${error.message}`
+      } else if (error && typeof error === 'object') {
+        errorMessage = `Failed to fetch orders: ${JSON.stringify(error)}`
+      }
+      
+      setError(errorMessage)
+      toast.error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Filter orders
+  const filtered = orders.filter((order) => {
+    const profileData = order.profile || order.profiles
+    const matchesSearch =
+      order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      profileData?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      profileData?.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      profileData?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === "all" || order.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
+
+  if (loading) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="p-8">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-2"></div>
+            <span className="text-muted-foreground">Loading orders...</span>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="bg-card border-border">
+        <CardContent className="p-8">
+          <div className="text-center">
+            <div className="text-red-500 mb-2">Error loading orders</div>
+            <p className="text-muted-foreground text-sm">{error}</p>
+            <Button 
+              onClick={fetchOrders} 
+              className="mt-4"
+              variant="outline"
+            >
+              Try Again
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="bg-card border-border">
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border bg-muted/30">
+                <th className="text-left py-4 px-6 font-semibold text-foreground">Order ID</th>
+                <th className="text-left py-4 px-6 font-semibold text-foreground">Customer</th>
+                <th className="text-left py-4 px-6 font-semibold text-foreground">Total</th>
+                <th className="text-left py-4 px-6 font-semibold text-foreground">Status</th>
+                <th className="text-left py-4 px-6 font-semibold text-foreground">Payment</th>
+                <th className="text-left py-4 px-6 font-semibold text-foreground">Date</th>
+                <th className="text-right py-4 px-6 font-semibold text-foreground">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-8 text-muted-foreground">
+                    No orders found
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((order) => {
+                  const config = statusConfig[order.status]
+                  
+                  // Debug: log the order structure to see what we're working with
+                  console.log('Order structure:', order)
+                  
+                  // Handle different possible profile field names
+                  const profileData = order.profile || order.profiles
+                  
+                  return (
+                    <tr key={order.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                      <td className="py-4 px-6 font-mono font-medium text-foreground text-sm">{order.order_number}</td>
+                      <td className="py-4 px-6">
+                        <div>
+                          <div className="text-foreground font-medium">
+                            {profileData?.full_name || profileData?.username || profileData?.email || 'Unknown Customer'}
+                          </div>
+                          {profileData?.email && (
+                            <div className="text-muted-foreground text-sm">{profileData.email}</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 font-semibold text-foreground">${order.total_amount.toFixed(2)}</td>
+                      <td className="py-4 px-6">
+                        <Badge variant={config.variant} className={config.color}>
+                          {config.label}
+                        </Badge>
+                      </td>
+                      <td className="py-4 px-6">
+                        <Badge 
+                          variant={order.payment_status === 'paid' ? 'default' : 'outline'}
+                          className={order.payment_status === 'paid' 
+                            ? 'text-green-500 bg-green-500/10 border-green-500/30' 
+                            : 'text-yellow-500 bg-yellow-500/10 border-yellow-500/30'
+                          }
+                        >
+                          {order.payment_status}
+                        </Badge>
+                      </td>
+                      <td className="py-4 px-6 text-muted-foreground text-sm">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center justify-end">
+                          <Link href={`/orders/${order.id}`}>
+                            <Button variant="ghost" size="sm" className="gap-2">
+                              <Eye className="w-4 h-4" />
+                              <ChevronRight className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
