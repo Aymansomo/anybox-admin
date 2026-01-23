@@ -1,14 +1,11 @@
 "use client"
 
-import { useState } from "react"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { StaffTable } from "@/components/staff-table"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 
 export default function StaffPage() {
-  const [openNewStaff, setOpenNewStaff] = useState(false)
-
   return (
     <DashboardLayout isAdmin={true}>
       <div className="space-y-6">
@@ -19,7 +16,11 @@ export default function StaffPage() {
             <p className="text-muted-foreground mt-1">Manage team members and their roles</p>
           </div>
           <Button
-            onClick={() => setOpenNewStaff(true)}
+            onClick={() => {
+              // Trigger the add staff dialog in StaffTable component
+              const event = new CustomEvent('openStaffDialog')
+              window.dispatchEvent(event)
+            }}
             className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="w-4 h-4" />
@@ -28,7 +29,7 @@ export default function StaffPage() {
         </div>
 
         {/* Staff Table */}
-        <StaffTable onAddStaff={() => setOpenNewStaff(true)} />
+        <StaffTable />
       </div>
     </DashboardLayout>
   )

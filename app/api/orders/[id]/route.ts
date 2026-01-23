@@ -16,6 +16,12 @@ export async function GET(
           email,
           phone
         ),
+        staff (
+          id,
+          full_name,
+          email,
+          role
+        ),
         order_items (
           *,
           products (

@@ -51,12 +51,17 @@ interface Order {
   created_at: string
   updated_at: string
   user_id?: string
+  staff_id?: number
   profile?: Profile
   order_items?: OrderItem[]
   // Fields from admin_orders view
   customer_name?: string
   customer_email?: string
   customer_phone?: string
+  // Staff assignment fields from admin_orders view
+  staff_full_name?: string
+  staff_email?: string
+  staff_role?: string
 }
 
 export function OrderDetails({ orderId }: OrderDetailsProps) {
@@ -67,17 +72,43 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
   const [notes, setNotes] = useState<string>("")
   const [isSaving, setIsSaving] = useState(false)
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
+  const [staff, setStaff] = useState<any[]>([])
+  const [selectedStaffId, setSelectedStaffId] = useState<string>("unassigned")
+  const [isAssigningStaff, setIsAssigningStaff] = useState(false)
 
   useEffect(() => {
     fetchOrderDetails()
+    fetchStaff()
   }, [orderId])
+
+  const fetchStaff = async () => {
+    try {
+      console.log('Fetching staff members...')
+      const { data, error } = await supabase
+        .from('staff')
+        .select('id, full_name, email, role')
+        .eq('is_active', true)
+        .order('full_name')
+
+      if (error) {
+        console.error('Supabase error fetching staff:', error)
+        throw error
+      }
+      
+      console.log('Staff data fetched:', data)
+      setStaff(data || [])
+    } catch (error) {
+      console.error('Error fetching staff:', error)
+      setStaff([]) // Set empty array on error to prevent infinite loading
+    }
+  }
 
   const fetchOrderDetails = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      // Fetch order with customer info from admin_orders view
+      // Fetch order with customer and staff info from admin_orders view
       const { data: orderData, error: orderError } = await supabase
         .from('admin_orders')
         .select('*')
@@ -85,6 +116,8 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
         .single()
 
       if (orderError) throw orderError
+
+      console.log('Order data fetched:', orderData)
 
       // Fetch order items with product details
       const { data: itemsData, error: itemsError } = await supabase
@@ -105,9 +138,11 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
         order_items: itemsData || []
       }
 
+      console.log('Full order data:', fullOrder)
       setOrder(fullOrder)
       setStatus(fullOrder.status)
       setNotes(fullOrder.notes || "")
+      setSelectedStaffId(fullOrder.staff_id?.toString() || "unassigned")
 
     } catch (error) {
       console.error('Error fetching order details:', error)
@@ -181,6 +216,51 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
       setStatus(order.status)
     } finally {
       setIsUpdatingStatus(false)
+    }
+  }
+
+  const handleStaffAssignment = async (staffId: string) => {
+    if (!order) return
+
+    try {
+      setIsAssigningStaff(true)
+      
+      console.log('Assigning staff:', staffId, 'to order:', orderId)
+      
+      const updateData: any = {
+        updated_at: new Date().toISOString()
+      }
+      
+      if (staffId === "unassigned") {
+        updateData.staff_id = null
+      } else {
+        updateData.staff_id = parseInt(staffId)
+      }
+      
+      console.log('Update data:', updateData)
+      
+      const { error, data } = await supabase
+        .from('orders')
+        .update(updateData)
+        .eq('id', orderId)
+        .select()
+
+      if (error) {
+        console.error('Supabase update error:', error)
+        throw error
+      }
+      
+      console.log('Update successful:', data)
+
+      toast.success(staffId === "unassigned" ? 'Staff assignment removed' : 'Order assigned to staff member')
+      fetchOrderDetails() // Refresh data
+    } catch (error) {
+      console.error('Error assigning staff:', error)
+      toast.error('Failed to assign staff: ' + (error as any).message)
+      // Revert selection on error
+      setSelectedStaffId(order.staff_id?.toString() || "unassigned")
+    } finally {
+      setIsAssigningStaff(false)
     }
   }
 
@@ -294,6 +374,60 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
                 <p className="font-semibold text-foreground">{formatAddress(order.shipping_address)}</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Staff Assignment */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-lg">Staff Assignment</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="staff-assignment">Assign to Staff Member</Label>
+              <Select
+                value={selectedStaffId}
+                onValueChange={(value) => {
+                  setSelectedStaffId(value)
+                  handleStaffAssignment(value)
+                }}
+                disabled={isAssigningStaff}
+              >
+                <SelectTrigger id="staff-assignment">
+                  <SelectValue placeholder="Select staff member...">
+                    {isAssigningStaff ? "Assigning..." : selectedStaffId && selectedStaffId !== "unassigned" ? 
+                      staff.find(s => s.id.toString() === selectedStaffId)?.full_name || "Loading..." : 
+                      staff.length === 0 ? "No staff available" : "Select staff member..."
+                    }
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {staff.length === 0 ? (
+                    <div className="px-2 py-1 text-sm text-muted-foreground">
+                      No active staff members available
+                    </div>
+                  ) : (
+                    staff.map((staffMember) => (
+                      <SelectItem key={staffMember.id} value={staffMember.id.toString()}>
+                        {staffMember.full_name} ({staffMember.role})
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {order.staff_id && (
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <p className="text-sm font-medium text-foreground">
+                  Currently assigned to: {order.staff_full_name || 'Loading...'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {order.staff_email} ({order.staff_role})
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

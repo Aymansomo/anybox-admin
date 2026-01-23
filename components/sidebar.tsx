@@ -19,7 +19,7 @@ interface NavItem {
   isDropdown?: boolean
 }
 
-const navItems: NavItem[] = [
+const adminNavItems: NavItem[] = [
   {
     label: "Dashboard",
     href: "/dashboard",
@@ -82,12 +82,32 @@ const navItems: NavItem[] = [
   },
 ]
 
+const staffNavItems: NavItem[] = [
+  {
+    label: "Dashboard",
+    href: "/staff-dashboard",
+    icon: <LayoutDashboard className="w-5 h-5" />,
+  },
+  {
+    label: "My Orders",
+    href: "/staff-orders",
+    icon: <ShoppingCart className="w-5 h-5" />,
+  },
+  {
+    label: "Notifications",
+    href: "/notifications",
+    icon: <Bell className="w-5 h-5" />,
+    badge: 3,
+  },
+]
+
 export function Sidebar({ isAdmin = true }: { isAdmin?: boolean }) {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(true)
   const [expandedItems, setExpandedItems] = useState<string[]>(["Layout"])
 
-  const filteredItems = navItems.filter((item) => !item.adminOnly || isAdmin)
+  const navItems = isAdmin ? adminNavItems : staffNavItems
+  const filteredItems = navItems.filter((item: NavItem) => !item.adminOnly || isAdmin)
 
   const toggleDropdown = (label: string) => {
     setExpandedItems(prev =>
@@ -137,9 +157,9 @@ export function Sidebar({ isAdmin = true }: { isAdmin?: boolean }) {
           <div className="p-6 border-b border-sidebar-border">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
-                <span className="text-sidebar-primary-foreground font-bold text-sm">AD</span>
+                <span className="text-sidebar-primary-foreground font-bold text-sm">{isAdmin ? "AD" : "ST"}</span>
               </div>
-              <h1 className="font-bold text-sidebar-foreground text-lg">Admin</h1>
+              <h1 className="font-bold text-sidebar-foreground text-lg">{isAdmin ? "Admin" : "Staff"}</h1>
             </div>
           </div>
 
@@ -223,7 +243,7 @@ export function Sidebar({ isAdmin = true }: { isAdmin?: boolean }) {
 
           {/* Footer */}
           <div className="p-4 border-t border-sidebar-border">
-            <div className="text-xs text-sidebar-foreground/60 text-center">Admin Dashboard v1.0</div>
+            <div className="text-xs text-sidebar-foreground/60 text-center">{isAdmin ? "Admin" : "Staff"} Dashboard v1.0</div>
           </div>
         </div>
       </aside>

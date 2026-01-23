@@ -22,17 +22,29 @@ export default function StaffLoginPage() {
     setIsLoading(true)
     setError("")
 
-    setTimeout(() => {
-      if (email && password.length >= 6) {
-        localStorage.setItem("isLoggedIn", "true")
-        localStorage.setItem("userRole", "staff")
-        localStorage.setItem("userEmail", email)
+    try {
+      const response = await fetch('/api/auth/staff/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        localStorage.setItem("staffToken", data.token)
+        localStorage.setItem("staffUser", JSON.stringify(data.staff))
         router.push("/staff-dashboard")
       } else {
-        setError("Invalid email or password")
-        setIsLoading(false)
+        setError(data.error || "Invalid email or password")
       }
-    }, 500)
+    } catch (error) {
+      setError("Network error. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Bell, Settings, LogOut, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,7 +12,57 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
+interface UserInfo {
+  name: string
+  email: string
+  initials: string
+  isAdmin: boolean
+}
+
 export function Navbar() {
+  const [user, setUser] = useState<UserInfo>({
+    name: "Admin",
+    email: "",
+    initials: "AD",
+    isAdmin: true
+  })
+
+  useEffect(() => {
+    // Check if staff user is logged in
+    const staffUser = localStorage.getItem('staffUser')
+    if (staffUser) {
+      try {
+        const staff = JSON.parse(staffUser)
+        const initials = staff.full_name
+          .split(' ')
+          .map((word: string) => word.charAt(0).toUpperCase())
+          .join('')
+          .slice(0, 2)
+        
+        setUser({
+          name: staff.full_name,
+          email: staff.email,
+          initials: initials || 'ST',
+          isAdmin: false
+        })
+      } catch (error) {
+        console.error('Error parsing staff user:', error)
+      }
+    }
+    // You can also check for admin user here if needed
+  }, [])
+
+  const handleLogout = () => {
+    if (user.isAdmin) {
+      // Handle admin logout
+      console.log('Admin logout')
+    } else {
+      // Handle staff logout
+      localStorage.removeItem('staffUser')
+      localStorage.removeItem('staffToken')
+      window.location.href = '/staff-login'
+    }
+  }
   return (
     <header className="sticky top-0 z-20 bg-card border-b border-border md:ml-64">
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
@@ -31,9 +82,9 @@ export function Navbar() {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2">
                 <Avatar className="w-8 h-8">
-                  <AvatarFallback>AD</AvatarFallback>
+                  <AvatarFallback>{user.initials}</AvatarFallback>
                 </Avatar>
-                <span className="hidden sm:inline text-sm font-medium">Admin</span>
+                <span className="hidden sm:inline text-sm font-medium">{user.name}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -46,7 +97,7 @@ export function Navbar() {
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-destructive">
+              <DropdownMenuItem className="cursor-pointer text-destructive" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 <span>Logout</span>
               </DropdownMenuItem>

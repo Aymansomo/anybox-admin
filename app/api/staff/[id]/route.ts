@@ -5,11 +5,12 @@ import bcrypt from 'bcryptjs'
 // GET single staff member
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const { data, error } = await supabase
-      .from('admins')
+      .from('staff')
       .select(`
         id,
         username,
@@ -18,10 +19,11 @@ export async function GET(
         role,
         is_active,
         last_login,
+        join_date,
         created_at,
         updated_at
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (error) {
@@ -42,9 +44,10 @@ export async function GET(
 // PUT update staff member
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
     const updateData: any = {
       username: body.username,
@@ -60,9 +63,9 @@ export async function PUT(
     }
 
     const { data, error } = await supabase
-      .from('admins')
+      .from('staff')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single()
 
@@ -84,13 +87,14 @@ export async function PUT(
 // DELETE staff member
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const { error } = await supabase
-      .from('admins')
+      .from('staff')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (error) {
       if (error.code === 'PGRST116') {

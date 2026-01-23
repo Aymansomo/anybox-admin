@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
 
     let query = supabase
-      .from('admins')
+      .from('staff')
       .select(`
         id,
         username,
@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
         role,
         is_active,
         last_login,
+        join_date,
         created_at
       `, { count: 'exact' })
 
@@ -72,13 +73,13 @@ export async function POST(request: NextRequest) {
     const passwordHash = await bcrypt.hash(body.password, 12)
     
     const { data, error } = await supabase
-      .from('admins')
+      .from('staff')
       .insert([{
         username: body.username,
         email: body.email,
         password_hash: passwordHash,
         full_name: body.full_name,
-        role: body.role || 'admin',
+        role: body.role || 'staff',
         is_active: body.is_active !== false
       }])
       .select()

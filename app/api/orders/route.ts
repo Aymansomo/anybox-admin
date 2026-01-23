@@ -18,6 +18,12 @@ export async function GET(request: NextRequest) {
         customers (
           name,
           email
+        ),
+        staff (
+          id,
+          full_name,
+          email,
+          role
         )
       `, { count: 'exact' })
 
