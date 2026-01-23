@@ -22,6 +22,16 @@ export default function StaffDashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Check if user is a manager and redirect to manager dashboard
+    const staffUser = localStorage.getItem('staffUser')
+    if (staffUser) {
+      const staff = JSON.parse(staffUser)
+      if (staff.role === 'manager') {
+        window.location.href = '/manager-dashboard'
+        return
+      }
+    }
+    
     fetchStaffStats()
   }, [])
 

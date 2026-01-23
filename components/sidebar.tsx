@@ -101,12 +101,36 @@ const staffNavItems: NavItem[] = [
   },
 ]
 
-export function Sidebar({ isAdmin = true }: { isAdmin?: boolean }) {
+const managerNavItems: NavItem[] = [
+  {
+    label: "Dashboard",
+    href: "/manager-dashboard",
+    icon: <LayoutDashboard className="w-5 h-5" />,
+  },
+  {
+    label: "Orders Management",
+    href: "/manager-orders",
+    icon: <ShoppingCart className="w-5 h-5" />,
+  },
+  {
+    label: "Staff Management",
+    href: "/manager-staff",
+    icon: <Users className="w-5 h-5" />,
+  },
+  {
+    label: "Notifications",
+    href: "/notifications",
+    icon: <Bell className="w-5 h-5" />,
+    badge: 3,
+  },
+]
+
+export function Sidebar({ isAdmin = true, isManager = false }: { isAdmin?: boolean; isManager?: boolean }) {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(true)
   const [expandedItems, setExpandedItems] = useState<string[]>(["Layout"])
 
-  const navItems = isAdmin ? adminNavItems : staffNavItems
+  const navItems = isAdmin ? adminNavItems : isManager ? managerNavItems : staffNavItems
   const filteredItems = navItems.filter((item: NavItem) => !item.adminOnly || isAdmin)
 
   const toggleDropdown = (label: string) => {
@@ -157,9 +181,9 @@ export function Sidebar({ isAdmin = true }: { isAdmin?: boolean }) {
           <div className="p-6 border-b border-sidebar-border">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-sidebar-primary rounded-lg flex items-center justify-center">
-                <span className="text-sidebar-primary-foreground font-bold text-sm">{isAdmin ? "AD" : "ST"}</span>
+                <span className="text-sidebar-primary-foreground font-bold text-sm">{isAdmin ? "AD" : isManager ? "MG" : "ST"}</span>
               </div>
-              <h1 className="font-bold text-sidebar-foreground text-lg">{isAdmin ? "Admin" : "Staff"}</h1>
+              <h1 className="font-bold text-sidebar-foreground text-lg">{isAdmin ? "Admin" : isManager ? "Manager" : "Staff"}</h1>
             </div>
           </div>
 
@@ -243,7 +267,7 @@ export function Sidebar({ isAdmin = true }: { isAdmin?: boolean }) {
 
           {/* Footer */}
           <div className="p-4 border-t border-sidebar-border">
-            <div className="text-xs text-sidebar-foreground/60 text-center">{isAdmin ? "Admin" : "Staff"} Dashboard v1.0</div>
+            <div className="text-xs text-sidebar-foreground/60 text-center">{isAdmin ? "Admin" : isManager ? "Manager" : "Staff"} Dashboard v1.0</div>
           </div>
         </div>
       </aside>

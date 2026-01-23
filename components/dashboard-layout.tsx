@@ -8,12 +8,13 @@ import { Navbar } from "./navbar"
 interface DashboardLayoutProps {
   children: React.ReactNode
   isAdmin?: boolean
+  isManager?: boolean
 }
 
-export function DashboardLayout({ children, isAdmin = true }: DashboardLayoutProps) {
+export function DashboardLayout({ children, isAdmin = true, isManager = false }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar isAdmin={isAdmin} />
+      <Sidebar isAdmin={isAdmin} isManager={isManager} />
       <Navbar />
       <main className="md:ml-64 pt-16 pb-4 px-4 md:px-6">{children}</main>
     </div>

@@ -75,6 +75,7 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
   const [staff, setStaff] = useState<any[]>([])
   const [selectedStaffId, setSelectedStaffId] = useState<string>("unassigned")
   const [isAssigningStaff, setIsAssigningStaff] = useState(false)
+  const [isManagerContext, setIsManagerContext] = useState(false)
 
   useEffect(() => {
     fetchOrderDetails()
@@ -84,11 +85,27 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
   const fetchStaff = async () => {
     try {
       console.log('Fetching staff members...')
-      const { data, error } = await supabase
+      
+      // Check if we're in a manager context by looking at the URL or localStorage
+      const isManager = window.location.pathname.includes('/manager-orders') || 
+                        localStorage.getItem('staffUser') && 
+                        JSON.parse(localStorage.getItem('staffUser') || '{}').role === 'manager'
+      
+      console.log('Manager context:', isManager)
+      setIsManagerContext(!!isManager)
+      
+      // Only fetch staff members (not managers) for managers
+      let query = supabase
         .from('staff')
         .select('id, full_name, email, role')
         .eq('is_active', true)
-        .order('full_name')
+      
+      if (isManager) {
+        // Managers can only see staff members, not other managers
+        query = query.eq('role', 'staff')
+      }
+      
+      const { data, error } = await query.order('full_name')
 
       if (error) {
         console.error('Supabase error fetching staff:', error)
@@ -108,12 +125,32 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
       setLoading(true)
       setError(null)
 
-      // Fetch order with customer and staff info from admin_orders view
-      const { data: orderData, error: orderError } = await supabase
-        .from('admin_orders')
-        .select('*')
-        .eq('id', orderId)
-        .single()
+      console.log('Fetching order details for ID:', orderId)
+
+      // First try admin_orders view, fallback to direct orders query
+      let orderData, orderError
+      
+      try {
+        console.log('Trying admin_orders view...')
+        const result = await supabase
+          .from('admin_orders')
+          .select('*')
+          .eq('id', orderId)
+          .single()
+        orderData = result.data
+        orderError = result.error
+      } catch (viewError) {
+        console.log('Admin orders view failed, trying direct query...')
+        const result = await supabase
+          .from('orders')
+          .select('*')
+          .eq('id', orderId)
+          .single()
+        orderData = result.data
+        orderError = result.error
+      }
+
+      console.log('Order query result:', { orderData, orderError })
 
       if (orderError) throw orderError
 
@@ -138,11 +175,19 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
         order_items: itemsData || []
       }
 
+      // Ensure staff_id is properly handled
+      if (fullOrder.staff_id === undefined || fullOrder.staff_id === null) {
+        fullOrder.staff_id = null
+      }
+
       console.log('Full order data:', fullOrder)
       setOrder(fullOrder)
       setStatus(fullOrder.status)
       setNotes(fullOrder.notes || "")
-      setSelectedStaffId(fullOrder.staff_id?.toString() || "unassigned")
+      
+      // Safely set selected staff ID
+      const staffId = fullOrder.staff_id
+      setSelectedStaffId(staffId ? staffId.toString() : "unassigned")
 
     } catch (error) {
       console.error('Error fetching order details:', error)
@@ -231,10 +276,11 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
         updated_at: new Date().toISOString()
       }
       
-      if (staffId === "unassigned") {
+      if (staffId === "unassigned" || staffId === "" || staffId === undefined) {
         updateData.staff_id = null
       } else {
-        updateData.staff_id = parseInt(staffId)
+        const parsedId = parseInt(staffId)
+        updateData.staff_id = isNaN(parsedId) ? null : parsedId
       }
       
       console.log('Update data:', updateData)
@@ -380,11 +426,20 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
         {/* Staff Assignment */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-lg">Staff Assignment</CardTitle>
+            <CardTitle className="text-lg">
+              {isManagerContext ? 'Assign to Staff Member' : 'Staff Assignment'}
+            </CardTitle>
+            {isManagerContext && (
+              <p className="text-sm text-muted-foreground">
+                Managers can only assign orders to staff members
+              </p>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="staff-assignment">Assign to Staff Member</Label>
+              <Label htmlFor="staff-assignment">
+                {isManagerContext ? 'Assign to Staff Member' : 'Assign to Staff Member'}
+              </Label>
               <Select
                 value={selectedStaffId}
                 onValueChange={(value) => {
@@ -405,12 +460,12 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
                   <SelectItem value="unassigned">Unassigned</SelectItem>
                   {staff.length === 0 ? (
                     <div className="px-2 py-1 text-sm text-muted-foreground">
-                      No active staff members available
+                      {isManagerContext ? "No active staff members available" : "No active staff members available"}
                     </div>
                   ) : (
                     staff.map((staffMember) => (
                       <SelectItem key={staffMember.id} value={staffMember.id.toString()}>
-                        {staffMember.full_name} ({staffMember.role})
+                        {staffMember.full_name} {isManagerContext ? '' : `(${staffMember.role})`}
                       </SelectItem>
                     ))
                   )}
@@ -422,6 +477,11 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
               <div className="p-3 bg-muted/50 rounded-lg">
                 <p className="text-sm font-medium text-foreground">
                   Currently assigned to: {order.staff_full_name || 'Loading...'}
+                  {isManagerContext && order.staff_role && order.staff_role !== 'staff' && (
+                    <span className="text-xs text-muted-foreground ml-2">
+                      ({order.staff_role})
+                    </span>
+                  )}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {order.staff_email} ({order.staff_role})

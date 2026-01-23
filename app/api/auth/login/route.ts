@@ -2,24 +2,50 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import bcrypt from 'bcryptjs'
 
+// Whitelist of allowed admin emails - update with your actual admin emails
+const ALLOWED_ADMIN_EMAILS = [
+  'admin@anybox.com',
+  'superadmin@anybox.com',
+  // Add more allowed admin emails here
+]
+
 export async function POST(request: NextRequest) {
   try {
-    const { username, password } = await request.json()
+    const { email, password } = await request.json()
 
-    if (!username || !password) {
+    console.log('Login attempt for email:', email)
+
+    if (!email || !password) {
+      console.log('Missing email or password')
       return NextResponse.json(
-        { error: 'Username and password are required' },
+        { error: 'Email and password are required' },
         { status: 400 }
       )
     }
 
-    // Get admin user from database
+    // Check if email is in the allowed list
+    console.log('Checking email against whitelist:', ALLOWED_ADMIN_EMAILS)
+    console.log('Email in whitelist:', ALLOWED_ADMIN_EMAILS.includes(email))
+    
+    if (!ALLOWED_ADMIN_EMAILS.includes(email)) {
+      console.log('Unauthorized login attempt for email:', email)
+      return NextResponse.json(
+        { error: 'Invalid credentials' },
+        { status: 401 }
+      )
+    }
+
+    console.log('Email is whitelisted, checking database...')
+
+    // Get admin user from database by email
     const { data: admin, error } = await supabase
       .from('admins')
       .select('*')
-      .eq('username', username)
+      .eq('email', email)
       .eq('is_active', true)
       .single()
+
+    console.log('Database query result:', { admin, error })
 
     if (error) {
       console.error('Error fetching admin:', error)
@@ -30,20 +56,36 @@ export async function POST(request: NextRequest) {
     }
 
     if (!admin) {
+      console.log('No admin found with email:', email)
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
       )
     }
 
+    console.log('Admin found:', admin)
+
     // Verify password
+    console.log('Verifying password...')
+    console.log('Input password:', password)
+    console.log('Stored hash:', admin.password_hash)
+    
     const isValidPassword = await bcrypt.compare(password, admin.password_hash)
+    console.log('Password valid:', isValidPassword)
+    
+    // Let's also try to hash the input password to see if it matches
+    const testHash = await bcrypt.hash(password, 12)
+    console.log('Generated hash for test:', testHash)
+    
     if (!isValidPassword) {
+      console.log('Invalid password for email:', email)
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
       )
     }
+
+    console.log('Password verified, creating session...')
 
     // Create session
     const sessionToken = generateSessionToken()

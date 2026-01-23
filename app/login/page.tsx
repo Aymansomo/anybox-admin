@@ -22,20 +22,34 @@ export default function LoginPage() {
     setIsLoading(true)
     setError("")
 
-    // Simulate API call
-    setTimeout(() => {
-      if (email && password.length >= 6) {
-        // Mock admin/staff detection
-        const isAdmin = email.includes("admin")
-        localStorage.setItem("isLoggedIn", "true")
-        localStorage.setItem("userRole", isAdmin ? "admin" : "staff")
-        localStorage.setItem("userEmail", email)
-        router.push("/dashboard")
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Store admin session
+        localStorage.setItem('isLoggedIn', 'true')
+        localStorage.setItem('userRole', 'admin')
+        localStorage.setItem('userEmail', email)
+        localStorage.setItem('adminData', JSON.stringify(data.admin))
+        
+        router.push('/dashboard')
       } else {
-        setError("Invalid email or password")
-        setIsLoading(false)
+        setError(data.error || 'Login failed')
       }
-    }, 500)
+    } catch (error) {
+      console.error('Login error:', error)
+      setError('Network error. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -60,7 +74,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@example.com"
+                  placeholder="admin@anybox.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
@@ -96,7 +110,7 @@ export default function LoginPage() {
               </Button>
 
               <div className="text-center text-sm text-muted-foreground pt-2">
-                Demo: Use any email with "admin" for admin role, others for staff role
+                Use your registered admin email to login
               </div>
             </form>
           </CardContent>
