@@ -357,7 +357,7 @@ export function ManagerStaffTable({ onAddStaff }: ManagerStaffTableProps) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
-              <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value as "staff" | "manager" })} disabled={editingId}>
+              <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value as "staff" | "manager" })} disabled={!!editingId}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

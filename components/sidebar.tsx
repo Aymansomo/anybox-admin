@@ -69,12 +69,6 @@ const adminNavItems: NavItem[] = [
     adminOnly: true,
   },
   {
-    label: "Notifications",
-    href: "/notifications",
-    icon: <Bell className="w-5 h-5" />,
-    badge: 3,
-  },
-  {
     label: "Settings",
     href: "/settings",
     icon: <Settings className="w-5 h-5" />,
@@ -93,12 +87,6 @@ const staffNavItems: NavItem[] = [
     href: "/staff-orders",
     icon: <ShoppingCart className="w-5 h-5" />,
   },
-  {
-    label: "Notifications",
-    href: "/notifications",
-    icon: <Bell className="w-5 h-5" />,
-    badge: 3,
-  },
 ]
 
 const managerNavItems: NavItem[] = [
@@ -116,12 +104,6 @@ const managerNavItems: NavItem[] = [
     label: "Staff Management",
     href: "/manager-staff",
     icon: <Users className="w-5 h-5" />,
-  },
-  {
-    label: "Notifications",
-    href: "/notifications",
-    icon: <Bell className="w-5 h-5" />,
-    badge: 3,
   },
 ]
 

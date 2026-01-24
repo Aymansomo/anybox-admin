@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Eye, ChevronRight } from "lucide-react"
+import { Eye, ChevronRight, ChevronLeft, ChevronDown } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 
@@ -74,32 +74,40 @@ const statusConfig = {
 }
 
 interface OrdersTableProps {
-  searchTerm: string
-  statusFilter: string
+  // searchTerm: string
+  // statusFilter: string
 }
 
-export function OrdersTable({ searchTerm, statusFilter }: OrdersTableProps) {
+export function OrdersTable() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalOrders, setTotalOrders] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const ordersPerPage = 10
 
   useEffect(() => {
     fetchOrders()
-  }, [])
+  }, [currentPage])
 
   const fetchOrders = async () => {
     try {
       setLoading(true)
       setError(null)
       
-      // Use the admin_orders view which already has customer information
-      console.log('Fetching from admin_orders view...')
-      const { data, error } = await supabase
+      const from = (currentPage - 1) * ordersPerPage
+      const to = from + ordersPerPage - 1
+      
+      const { data, error, count } = await supabase
         .from('admin_orders')
-        .select('*')
+        .select('*', { count: 'exact' })
+        .range(from, to)
         .order('created_at', { ascending: false })
 
-      console.log('Admin orders view result:', { data, error })
+      console.log('Admin orders view result:', { data, error, count })
 
       if (error) throw error
 
@@ -115,6 +123,8 @@ export function OrdersTable({ searchTerm, statusFilter }: OrdersTableProps) {
       })) || []
 
       setOrders(transformedData)
+      setTotalOrders(count || 0)
+      setTotalPages(Math.ceil((count || 0) / ordersPerPage))
     } catch (error) {
       console.error('Error fetching orders:', error)
       console.error('Error details:', JSON.stringify(error, null, 2))
@@ -262,6 +272,65 @@ export function OrdersTable({ searchTerm, statusFilter }: OrdersTableProps) {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+            <div className="text-sm text-muted-foreground">
+              Showing {((currentPage - 1) * ordersPerPage) + 1} to {Math.min(currentPage * ordersPerPage, totalOrders)} of {totalOrders} orders
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum
+                  if (totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i
+                  } else {
+                    pageNum = currentPage - 2 + i
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className="w-8 h-8 p-0"
+                    >
+                      {pageNum}
+                    </Button>
+                  )
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="gap-2"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

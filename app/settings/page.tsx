@@ -21,7 +21,6 @@ export default function SettingsPage() {
           <TabsList className="grid w-full grid-cols-3 bg-card border border-border">
             <TabsTrigger value="store">Store Info</TabsTrigger>
             <TabsTrigger value="rules">Order Rules</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
           </TabsList>
 
           <TabsContent value="store" className="mt-6">
@@ -32,9 +31,7 @@ export default function SettingsPage() {
             <OrderRulesSettings />
           </TabsContent>
 
-          <TabsContent value="notifications" className="mt-6">
-            <NotificationPreferences />
-          </TabsContent>
+
         </Tabs>
       </div>
     </DashboardLayout>
