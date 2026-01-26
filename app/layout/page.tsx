@@ -364,13 +364,13 @@ export default function LayoutPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center flex-wrap justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Layout Management</h1>
             <p className="text-muted-foreground mt-1">Manage hero sliders, banners, and other layout elements</p>
           </div>
           <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>
-            <DialogTrigger asChild>
+            <DialogTrigger asChild >
               <Button 
                 className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={handleCreate}

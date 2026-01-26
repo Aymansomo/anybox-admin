@@ -336,7 +336,7 @@ export function StaffOrders() {
                              order.address ? order.address.substring(0, 30) + '...' : 'No address'}
                           </td>
                           <td className="py-3 px-4 text-muted-foreground text-sm">{getItemCount(order)}</td>
-                          <td className="py-3 px-4 font-semibold text-foreground text-sm">${order.total_amount.toFixed(2)}</td>
+                          <td className="py-3 px-4 font-semibold text-foreground text-sm">DH {order.total_amount.toFixed(2)}</td>
                           <td className="py-3 px-4">
                             <Badge variant="outline" className={`text-xs ${config.color}`}>
                               {config.label}

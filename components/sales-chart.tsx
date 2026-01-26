@@ -156,7 +156,7 @@ export function SalesChart() {
               }}
               formatter={(value: any, name: any) => {
                 if (name === 'Revenue') {
-                  return [`$${value.toLocaleString()}`]
+                  return [`DH${value.toLocaleString()}`]
                 }
                 return [`${value} units`]
               }}

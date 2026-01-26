@@ -257,7 +257,7 @@ export default function AboutUsPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap">
           <div>
             <h1 className="text-3xl font-bold text-foreground">About Us Management</h1>
             <p className="text-muted-foreground mt-1">Manage About Us content and sections</p>
@@ -522,59 +522,68 @@ export default function AboutUsPage() {
             ) : (
               <div className="space-y-6">
                 {aboutUsItems.map((item, index) => (
-                  <div key={`about-item-${item.id || index}`} className="border rounded-lg p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <h3 className="text-xl font-semibold">{item.title}</h3>
-                          <Badge variant={item.is_active ? "default" : "secondary"}>
-                            {item.is_active ? "Active" : "Inactive"}
-                          </Badge>
+                  <div key={`about-item-${item.id || index}`} className="border rounded-lg p-4 sm:p-6 hover:shadow-lg transition-shadow">
+                    <div className="flex flex-col gap-4">
+                      {/* Header with title and actions */}
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+                            <h3 className="text-lg sm:text-xl font-semibold">{item.title}</h3>
+                            <Badge variant={item.is_active ? "default" : "secondary"} className="w-fit">
+                              {item.is_active ? "Active" : "Inactive"}
+                            </Badge>
+                          </div>
                         </div>
                         
-                        {item.subtitle && (
-                          <p className="text-lg text-muted-foreground mb-3">{item.subtitle}</p>
-                        )}
-                        
-                        {item.description && (
-                          <p className="text-muted-foreground mb-4">{item.description}</p>
-                        )}
-                        
-                        {item.mission && (
-                          <div className="mb-3">
-                            <h4 className="font-medium mb-1">Mission:</h4>
-                            <p className="text-muted-foreground">{item.mission}</p>
-                          </div>
-                        )}
-                        
-                        {item.vision && (
-                          <div className="mb-3">
-                            <h4 className="font-medium mb-1">Vision:</h4>
-                            <p className="text-muted-foreground">{item.vision}</p>
-                          </div>
-                        )}
-                        
-                        <div className="text-sm text-muted-foreground">
-                          Order: {item.order_index}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 ml-4">
-                        {item.image && (
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-20 h-20 object-cover rounded-lg"
-                          />
-                        )}
-                        <div className="flex flex-col gap-2">
-                          <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" onClick={() => openEditDialog(item)} className="h-8 w-8 p-0">
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)}>
+                          <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)} className="h-8 w-8 p-0">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
+                      </div>
+                      
+                      {/* Content section */}
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex-1">
+                          {item.subtitle && (
+                            <p className="text-base sm:text-lg text-muted-foreground mb-3">{item.subtitle}</p>
+                          )}
+                          
+                          {item.description && (
+                            <p className="text-muted-foreground mb-4 text-sm sm:text-base">{item.description}</p>
+                          )}
+                          
+                          {item.mission && (
+                            <div className="mb-3">
+                              <h4 className="font-medium mb-1 text-sm sm:text-base">Mission:</h4>
+                              <p className="text-muted-foreground text-sm">{item.mission}</p>
+                            </div>
+                          )}
+                          
+                          {item.vision && (
+                            <div className="mb-3">
+                              <h4 className="font-medium mb-1 text-sm sm:text-base">Vision:</h4>
+                              <p className="text-muted-foreground text-sm">{item.vision}</p>
+                            </div>
+                          )}
+                          
+                          <div className="text-xs sm:text-sm text-muted-foreground">
+                            Order: {item.order_index}
+                          </div>
+                        </div>
+                        
+                        {item.image && (
+                          <div className="shrink-0">
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg"
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

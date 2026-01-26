@@ -93,6 +93,8 @@ export default function FooterManagementPage() {
       is_active: contact.is_active,
       sort_order: contact.sort_order
     })
+    // Scroll to top when edit is clicked
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleCancel = () => {

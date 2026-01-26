@@ -5,7 +5,7 @@ import type React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { LayoutDashboard, Package, ShoppingCart, Users, Bell, Settings, Menu, X, FolderOpen, Palette, Info, ChevronDown, ChevronRight, Mail } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -109,11 +109,16 @@ const managerNavItems: NavItem[] = [
 
 export function Sidebar({ isAdmin = true, isManager = false }: { isAdmin?: boolean; isManager?: boolean }) {
   const pathname = usePathname()
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(false) // Start closed on mobile
   const [expandedItems, setExpandedItems] = useState<string[]>(["Layout"])
 
   const navItems = isAdmin ? adminNavItems : isManager ? managerNavItems : staffNavItems
   const filteredItems = navItems.filter((item: NavItem) => !item.adminOnly || isAdmin)
+
+  // Close sidebar when pathname changes
+  useEffect(() => {
+    setIsOpen(false)
+  }, [pathname])
 
   const toggleDropdown = (label: string) => {
     setExpandedItems(prev =>

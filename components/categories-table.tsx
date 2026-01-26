@@ -265,62 +265,73 @@ export function CategoriesTable({ searchTerm, sortBy }: CategoriesTableProps) {
               {filteredCategories.map((category) => (
                 <div
                   key={category.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="border rounded-lg hover:bg-muted/50 transition-all duration-200 overflow-hidden"
                 >
-                  <div className="flex items-center gap-4">
-                    {category.image ? (
-                      <img
-                        src={category.image}
-                        alt={category.name}
-                        className="w-12 h-12 object-cover rounded-md"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
-                        <ImageIcon className="w-6 h-6 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="font-medium">{category.name}</h3>
-                      {category.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-1">
-                          {category.description}
-                        </p>
+                  <div className="p-4">
+                    {/* Header with image and basic info */}
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      {category.image ? (
+                        <img
+                          src={category.image}
+                          alt={category.name}
+                          className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-md shrink-0"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted rounded-md flex items-center justify-center shrink-0">
+                          <ImageIcon className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
+                        </div>
                       )}
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant={category.status === "active" ? "default" : "secondary"}>
-                          {category.status}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {category.product_count} products
-                        </span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-sm sm:text-base truncate">{category.name}</h3>
+                        {category.description && (
+                          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mt-1">
+                            {category.description}
+                          </p>
+                        )}
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          <Badge variant={category.status === "active" ? "default" : "secondary"} className="text-xs">
+                            {category.status}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {category.product_count} products
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Link href={`/categories/${category.id}/products`}>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        View
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(category)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(category)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    
+                    {/* Action buttons */}
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <Link href={`/categories/${category.id}/products`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 sm:px-3 text-xs sm:text-sm"
+                          >
+                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                            <span className="hidden sm:inline">View</span>
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(category)}
+                          className="h-8 w-8 p-0 sm:h-8 sm:px-3 sm:w-auto"
+                        >
+                          <Pencil className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                          <span className="hidden sm:inline">Edit</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(category)}
+                          className="h-8 w-8 p-0 sm:h-8 sm:px-3 sm:w-auto text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                          <span className="hidden sm:inline">Delete</span>
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}

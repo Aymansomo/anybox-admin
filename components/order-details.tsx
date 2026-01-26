@@ -393,31 +393,31 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
   const shipping = 0 // You can calculate this based on your business logic
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="space-y-6">
       {/* Main Content */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className="space-y-6">
         {/* Customer Info */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-lg">Customer Information</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Customer Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Name</p>
-                <p className="font-semibold text-foreground">{order.customer_name || 'Unknown Customer'}</p>
+                <p className="font-semibold text-foreground text-sm sm:text-base">{order.customer_name || 'Unknown Customer'}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-semibold text-foreground">{order.customer_email}</p>
+                <p className="font-semibold text-foreground text-sm sm:text-base break-all">{order.customer_email}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="font-semibold text-foreground">{order.customer_phone || 'Not provided'}</p>
+                <p className="font-semibold text-foreground text-sm sm:text-base">{order.customer_phone || 'Not provided'}</p>
               </div>
-              <div>
+              <div className="sm:col-span-2">
                 <p className="text-sm text-muted-foreground">Shipping Address</p>
-                <p className="font-semibold text-foreground">{formatAddress(order.shipping_address)}</p>
+                <p className="font-semibold text-foreground text-sm sm:text-base">{formatAddress(order.shipping_address)}</p>
               </div>
             </div>
           </CardContent>
@@ -426,7 +426,7 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
         {/* Staff Assignment */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-lg">
+            <CardTitle className="text-lg sm:text-xl">
               {isManagerContext ? 'Assign to Staff Member' : 'Staff Assignment'}
             </CardTitle>
             {isManagerContext && (
@@ -437,7 +437,7 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="staff-assignment">
+              <Label htmlFor="staff-assignment" className="text-sm sm:text-base">
                 {isManagerContext ? 'Assign to Staff Member' : 'Assign to Staff Member'}
               </Label>
               <Select
@@ -448,7 +448,7 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
                 }}
                 disabled={isAssigningStaff}
               >
-                <SelectTrigger id="staff-assignment">
+                <SelectTrigger id="staff-assignment" className="text-sm sm:text-base">
                   <SelectValue placeholder="Select staff member...">
                     {isAssigningStaff ? "Assigning..." : selectedStaffId && selectedStaffId !== "unassigned" ? 
                       staff.find(s => s.id.toString() === selectedStaffId)?.full_name || "Loading..." : 
@@ -473,7 +473,7 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
               </Select>
             </div>
             
-            {order.staff_id && (
+            {/* {order.staff_id && (
               <div className="p-3 bg-muted/50 rounded-lg">
                 <p className="text-sm font-medium text-foreground">
                   Currently assigned to: {order.staff_full_name || 'Loading...'}
@@ -483,31 +483,31 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
                     </span>
                   )}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground break-all">
                   {order.staff_email} ({order.staff_role})
                 </p>
               </div>
-            )}
+            )} */}
           </CardContent>
         </Card>
 
         {/* Order Items */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-lg">Order Items</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Order Items</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {order.order_items?.map((item: OrderItem) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between py-3 border-b border-border last:border-b-0"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 border-b border-border last:border-b-0 gap-2"
                 >
-                  <div>
-                    <p className="font-medium text-foreground">{item.product?.name || `Product ${item.product_id}`}</p>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground text-sm sm:text-base">{item.product?.name || `Product ${item.product_id}`}</p>
                     <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
                   </div>
-                  <p className="font-semibold text-foreground">${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-semibold text-foreground text-sm sm:text-base sm:text-right">DH{(item.price * item.quantity).toFixed(2)}</p>
                 </div>
               ))}
             </div>
@@ -516,19 +516,19 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
             <div className="mt-6 pt-6 border-t border-border space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-medium text-foreground">${subtotal.toFixed(2)}</span>
+                <span className="font-medium text-foreground">DH{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Tax</span>
-                <span className="font-medium text-foreground">${tax.toFixed(2)}</span>
+                <span className="font-medium text-foreground">DH{tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Shipping</span>
-                <span className="font-medium text-foreground">${shipping.toFixed(2)}</span>
+                <span className="font-medium text-foreground">DH{shipping.toFixed(2)}</span>
               </div>
               <div className="flex justify-between pt-2 border-t border-border">
                 <span className="font-semibold text-foreground">Total</span>
-                <span className="font-bold text-lg text-foreground">${order.total_amount.toFixed(2)}</span>
+                <span className="font-bold text-lg text-foreground">DH{order.total_amount.toFixed(2)}</span>
               </div>
             </div>
           </CardContent>
@@ -537,7 +537,7 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
         {/* Timeline */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-lg">Order Timeline</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Order Timeline</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -548,7 +548,7 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
                     {index < timeline.length - 1 && <div className="w-0.5 h-8 bg-border mt-2 mb-2" />}
                   </div>
                   <div className="flex-1 pb-4">
-                    <p className="font-semibold text-foreground">{event.label}</p>
+                    <p className="font-semibold text-foreground text-sm sm:text-base">{event.label}</p>
                     <p className="text-sm text-muted-foreground">{event.date}</p>
                   </div>
                 </div>
@@ -560,22 +560,23 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
         {/* Admin Notes */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-lg">Internal Notes</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Internal Notes</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes" className="text-sm sm:text-base">Notes</Label>
               <Textarea
                 id="notes"
                 placeholder="Add internal notes about this order..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={4}
+                className="text-sm sm:text-base"
               />
             </div>
             <Button
               onClick={handleSave}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
               disabled={isSaving}
             >
               {isSaving ? "Saving..." : "Save Notes"}
@@ -584,12 +585,11 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
         </Card>
       </div>
 
-      {/* Sidebar */}
+      {/* Sidebar - Status Card */}
       <div className="space-y-6">
-        {/* Status Card */}
         <Card className="bg-card border-border sticky top-20">
           <CardHeader>
-            <CardTitle className="text-lg">Order Status</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Order Status</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -634,9 +634,9 @@ export function OrderDetails({ orderId }: OrderDetailsProps) {
               </div>
             )}
 
-            <Button variant="outline" className="w-full bg-transparent">
+            {/* <Button variant="outline" className="w-full bg-transparent">
               Print Order
-            </Button>
+            </Button> */}
           </CardContent>
         </Card>
       </div>

@@ -202,9 +202,11 @@ export default function DashboardPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Page Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Welcome back! Here's your store overview</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">Welcome back! Here's your store overview</p>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -218,7 +220,7 @@ export default function DashboardPage() {
           />
           <StatsCard
             title="Total Revenue"
-            value={`$${stats.totalRevenue.toLocaleString()}`}
+            value={`DH ${stats.totalRevenue.toLocaleString()}`}
             change={`${stats.revenueChange >= 0 ? '+' : ''}${stats.revenueChange}%`}
             icon={<TrendingUp className="w-5 h-5" />}
             trend={stats.revenueChange >= 0 ? "up" : "down"}
@@ -254,8 +256,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <div className="xl:col-span-2">
             <SalesChart />
           </div>
           <div>

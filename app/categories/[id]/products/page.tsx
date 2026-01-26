@@ -69,7 +69,7 @@ export default function CategoryProductsPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center flex-wrap justify-between">
           <div className="flex items-center gap-4">
             <Link href="/categories">
               <Button variant="outline" size="sm">

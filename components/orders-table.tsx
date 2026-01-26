@@ -74,16 +74,14 @@ const statusConfig = {
 }
 
 interface OrdersTableProps {
-  // searchTerm: string
-  // statusFilter: string
+  searchTerm: string
+  statusFilter: string
 }
 
-export function OrdersTable() {
+export function OrdersTable({ searchTerm, statusFilter }: OrdersTableProps) {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalOrders, setTotalOrders] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
@@ -91,7 +89,7 @@ export function OrdersTable() {
 
   useEffect(() => {
     fetchOrders()
-  }, [currentPage])
+  }, [currentPage, searchTerm, statusFilter])
 
   const fetchOrders = async () => {
     try {
@@ -196,13 +194,13 @@ export function OrdersTable() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Order ID</th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Customer</th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Total</th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Status</th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Payment</th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Date</th>
-                <th className="text-right py-4 px-6 font-semibold text-foreground">Action</th>
+                <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm">Order ID</th>
+                <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm">Customer</th>
+                <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm hidden sm:table-cell">Total</th>
+                <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm">Status</th>
+                <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm hidden md:table-cell">Payment</th>
+                <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm hidden lg:table-cell">Date</th>
+                <th className="text-right py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -224,24 +222,24 @@ export function OrdersTable() {
                   
                   return (
                     <tr key={order.id} className="border-b border-border hover:bg-muted/50 transition-colors">
-                      <td className="py-4 px-6 font-mono font-medium text-foreground text-sm">{order.order_number}</td>
-                      <td className="py-4 px-6">
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 font-mono font-medium text-foreground text-xs sm:text-sm">{order.order_number}</td>
+                      <td className="py-3 px-3 sm:py-4 sm:px-6">
                         <div>
-                          <div className="text-foreground font-medium">
+                          <div className="text-foreground font-medium text-xs sm:text-sm">
                             {profileData?.full_name || profileData?.username || profileData?.email || 'Unknown Customer'}
                           </div>
                           {profileData?.email && (
-                            <div className="text-muted-foreground text-sm">{profileData.email}</div>
+                            <div className="text-muted-foreground text-xs hidden sm:block">{profileData.email}</div>
                           )}
                         </div>
                       </td>
-                      <td className="py-4 px-6 font-semibold text-foreground">${order.total_amount.toFixed(2)}</td>
-                      <td className="py-4 px-6">
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm hidden sm:table-cell">DH {order.total_amount.toFixed(2)}</td>
+                      <td className="py-3 px-3 sm:py-4 sm:px-6">
                         <Badge variant={config.variant} className={config.color}>
                           {config.label}
                         </Badge>
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 hidden md:table-cell">
                         <Badge 
                           variant={order.payment_status === 'paid' ? 'default' : 'outline'}
                           className={order.payment_status === 'paid' 
@@ -252,15 +250,14 @@ export function OrdersTable() {
                           {order.payment_status}
                         </Badge>
                       </td>
-                      <td className="py-4 px-6 text-muted-foreground text-sm">
+                      <td className="py-3 px-3 sm:py-4 sm:px-6 text-muted-foreground text-xs sm:text-sm hidden lg:table-cell">
                         {new Date(order.created_at).toLocaleDateString()}
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="py-3 px-3 sm:py-4 sm:px-6">
                         <div className="flex items-center justify-end">
                           <Link href={`/orders/${order.id}`}>
-                            <Button variant="ghost" size="sm" className="gap-2">
+                            <Button variant="ghost" size="sm" className="gap-2 h-8 w-8 p-0">
                               <Eye className="w-4 h-4" />
-                              <ChevronRight className="w-4 h-4" />
                             </Button>
                           </Link>
                         </div>
@@ -275,20 +272,21 @@ export function OrdersTable() {
         
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-border">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 sm:px-6 py-4 border-t border-border">
+            <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
               Showing {((currentPage - 1) * ordersPerPage) + 1} to {Math.min(currentPage * ordersPerPage, totalOrders)} of {totalOrders} orders
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-end gap-2 sm:gap-3">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="gap-2"
+                className="gap-1 sm:gap-2 h-8 px-2 sm:px-3 text-xs sm:text-sm"
               >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
+                <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Prev</span>
               </Button>
               
               <div className="flex items-center gap-1">
@@ -310,7 +308,7 @@ export function OrdersTable() {
                       variant={currentPage === pageNum ? "default" : "outline"}
                       size="sm"
                       onClick={() => setCurrentPage(pageNum)}
-                      className="w-8 h-8 p-0"
+                      className="w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs"
                     >
                       {pageNum}
                     </Button>
@@ -323,10 +321,11 @@ export function OrdersTable() {
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
-                className="gap-2"
+                className="gap-1 sm:gap-2 h-8 px-2 sm:px-3 text-xs sm:text-sm"
               >
-                Next
-                <ChevronRight className="w-4 h-4" />
+                <span className="hidden sm:inline">Next</span>
+                <span className="sm:hidden">Next</span>
+                <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
               </Button>
             </div>
           </div>

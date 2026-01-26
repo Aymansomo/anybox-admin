@@ -16,7 +16,7 @@ export default function CategoriesPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center flex-wrap justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Categories</h1>
             <p className="text-muted-foreground mt-1">Manage your product categories</p>

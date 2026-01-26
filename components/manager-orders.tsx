@@ -404,7 +404,7 @@ export function ManagerOrders() {
                            order.address ? order.address.substring(0, 30) + '...' : 'No address'}
                         </td>
                         <td className="py-3 px-4 text-muted-foreground text-sm">{getItemCount(order)}</td>
-                        <td className="py-3 px-4 font-semibold text-foreground text-sm">${order.total_amount.toFixed(2)}</td>
+                        <td className="py-3 px-4 font-semibold text-foreground text-sm">DH {order.total_amount.toFixed(2)}</td>
                         <td className="py-3 px-4">
                           <Badge variant="outline" className={`text-xs ${config.color}`}>
                             {config.label}
@@ -470,7 +470,7 @@ export function ManagerOrders() {
                 <div className="text-sm">
                   <p><span className="font-medium">Order:</span> {selectedOrder.order_number}</p>
                   <p><span className="font-medium">Customer:</span> {selectedOrder.customer_name}</p>
-                  <p><span className="font-medium">Total:</span> ${selectedOrder.total_amount.toFixed(2)}</p>
+                  <p><span className="font-medium">Total:</span> DH{selectedOrder.total_amount.toFixed(2)}</p>
                 </div>
               </div>
             )}

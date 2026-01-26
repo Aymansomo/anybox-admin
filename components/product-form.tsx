@@ -410,9 +410,9 @@ export function ProductForm({ productId }: ProductFormProps) {
             </div>
 
             {/* Price and Stock Row */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="price">Price ($)</Label>
+                <Label htmlFor="price">Price (DH)</Label>
                 <Input
                   id="price"
                   name="price"
@@ -590,15 +590,15 @@ export function ProductForm({ productId }: ProductFormProps) {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button
                 type="submit"
-                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                className="w-full sm:flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                 disabled={isLoading}
               >
                 {isLoading ? "Saving..." : productId ? "Update Product" : "Create Product"}
               </Button>
-              <Button type="button" variant="outline" className="flex-1 bg-transparent" onClick={() => router.back()}>
+              <Button type="button" variant="outline" className="w-full sm:flex-1 bg-transparent" onClick={() => router.back()}>
                 Cancel
               </Button>
             </div>

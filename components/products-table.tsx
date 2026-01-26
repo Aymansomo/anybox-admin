@@ -193,12 +193,12 @@ export function ProductsTable({ searchTerm, categoryFilter, sortBy, categoryId }
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Product</th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Category</th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Price</th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Stock</th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">Status</th>
-                <th className="text-right py-4 px-6 font-semibold text-foreground">Actions</th>
+                <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm">Product</th>
+                <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm hidden sm:table-cell">Category</th>
+                <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm">Price</th>
+                <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm hidden md:table-cell">Stock</th>
+                <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm hidden lg:table-cell">Status</th>
+                <th className="text-right py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -211,53 +211,46 @@ export function ProductsTable({ searchTerm, categoryFilter, sortBy, categoryId }
               ) : (
                 filtered.map((product) => (
                   <tr key={product.id} className="border-b border-border hover:bg-muted/50 transition-colors">
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
+                    <td className="py-3 px-3 sm:py-4 sm:px-6">
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <img
                           src={product.image || "/placeholder.svg"}
                           alt={product.name}
-                          className="w-10 h-10 rounded bg-muted object-cover"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded bg-muted object-cover"
                         />
-                        <span className="font-medium text-foreground">{product.name}</span>
+                        <span className="font-medium text-foreground text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">{product.name}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-muted-foreground">{product.category}</td>
-                    <td className="py-4 px-6 font-semibold text-foreground">${product.price.toFixed(2)}</td>
-                    <td className="py-4 px-6">
+                    <td className="py-3 px-3 sm:py-4 sm:px-6 text-muted-foreground text-xs sm:text-sm hidden sm:table-cell">{product.category}</td>
+                    <td className="py-3 px-3 sm:py-4 sm:px-6 font-semibold text-foreground text-xs sm:text-sm">DH {product.price.toFixed(2)}</td>
+                    <td className="py-3 px-3 sm:py-4 sm:px-6 hidden md:table-cell">
                       <Badge
                         variant="outline"
-                        className={
+                        className={`text-xs ${
                           product.stock <= 10
                             ? "bg-destructive/10 text-destructive border-destructive/30"
                             : "bg-green-500/10 text-green-500 border-green-500/30"
-                        }
+                        }`}
                       >
                         {product.stock} units
                       </Badge>
                     </td>
-                    <td className="py-4 px-6">
-                      <Badge variant={product.status === "active" ? "default" : "secondary"}>
+                    <td className="py-3 px-3 sm:py-4 sm:px-6 hidden lg:table-cell">
+                      <Badge variant={product.status === "active" ? "default" : "secondary"} className="text-xs">
                         {product.status === "active" ? "Active" : "Inactive"}
                       </Badge>
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Eye className="w-4 h-4" />
-                        </Button>
+                    <td className="py-3 px-3 sm:py-4 sm:px-6">
+                      <div className="flex items-center justify-end gap-1">
                         <Link href={`/products/${product.id}/edit`}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Edit2 className="w-4 h-4" />
+                          <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8">
+                            <Edit2 className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                         </Link>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="w-4 h-4" />
+                            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 text-destructive hover:text-destructive">
+                              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
