@@ -1,41 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import bcrypt from 'bcryptjs'
+import { authRateLimit } from '@/lib/rate-limit'
+import { logger, handleApiError, getRequestContext } from '@/lib/logger'
+import { validateRequest, loginSchema } from '@/lib/validation'
+import { addCSRFProtection, addSecurityHeaders, addCORSHeaders, handleCORSOptions } from '@/lib/security'
 
-// Whitelist of allowed admin emails - update with your actual admin emails
-const ALLOWED_ADMIN_EMAILS = [
-  'admin@anybox.com',
-  'superadmin@anybox.com',
-  // Add more allowed admin emails here
-]
+// Get allowed admin emails from environment variable
+const ALLOWED_ADMIN_EMAILS = process.env.ALLOWED_ADMIN_EMAILS 
+  ? process.env.ALLOWED_ADMIN_EMAILS.split(',').map(email => email.trim())
+  : ['admin@anybox.com', 'superadmin@anybox.com'] // Fallback for development
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = authRateLimit(request)
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
   try {
-    const { email, password } = await request.json()
-
-    console.log('Login attempt for email:', email)
-
-    if (!email || !password) {
-      console.log('Missing email or password')
+    const body = await request.json()
+    
+    // Validate input
+    const validation = validateRequest(loginSchema, body)
+    if (!validation.success) {
+      logger.warn('Invalid login attempt', getRequestContext(request, { 
+        validationError: validation.error,
+        email: body.email 
+      }))
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: validation.error },
         { status: 400 }
       )
     }
 
+    const { email, password } = validation.data
+
     // Check if email is in the allowed list
-    console.log('Checking email against whitelist:', ALLOWED_ADMIN_EMAILS)
-    console.log('Email in whitelist:', ALLOWED_ADMIN_EMAILS.includes(email))
     
     if (!ALLOWED_ADMIN_EMAILS.includes(email)) {
-      console.log('Unauthorized login attempt for email:', email)
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
       )
     }
 
-    console.log('Email is whitelisted, checking database...')
 
     // Get admin user from database by email
     const { data: admin, error } = await supabase
@@ -45,10 +54,8 @@ export async function POST(request: NextRequest) {
       .eq('is_active', true)
       .single()
 
-    console.log('Database query result:', { admin, error })
 
     if (error) {
-      console.error('Error fetching admin:', error)
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -56,36 +63,23 @@ export async function POST(request: NextRequest) {
     }
 
     if (!admin) {
-      console.log('No admin found with email:', email)
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
       )
     }
 
-    console.log('Admin found:', admin)
 
     // Verify password
-    console.log('Verifying password...')
-    console.log('Input password:', password)
-    console.log('Stored hash:', admin.password_hash)
-    
     const isValidPassword = await bcrypt.compare(password, admin.password_hash)
-    console.log('Password valid:', isValidPassword)
-    
-    // Let's also try to hash the input password to see if it matches
-    const testHash = await bcrypt.hash(password, 12)
-    console.log('Generated hash for test:', testHash)
     
     if (!isValidPassword) {
-      console.log('Invalid password for email:', email)
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
       )
     }
 
-    console.log('Password verified, creating session...')
 
     // Create session
     const sessionToken = generateSessionToken()
@@ -101,7 +95,6 @@ export async function POST(request: NextRequest) {
       })
 
     if (sessionError) {
-      console.error('Error creating session:', sessionError)
       return NextResponse.json(
         { error: 'Failed to create session' },
         { status: 500 }
@@ -145,13 +138,14 @@ export async function POST(request: NextRequest) {
       path: '/'
     })
 
+    // Add security headers and CSRF protection
+    addCSRFProtection(response)
+    addSecurityHeaders(response)
+    addCORSHeaders(response, request)
+
     return response
   } catch (error) {
-    console.error('Login error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error, request, { action: 'admin_login' })
   }
 }
 

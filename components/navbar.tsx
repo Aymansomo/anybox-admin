@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { toastUtils } from "@/lib/toast-utils"
 
 interface UserInfo {
   name: string
@@ -54,8 +55,21 @@ export function Navbar() {
 
   const handleLogout = () => {
     if (user.isAdmin) {
-      // Handle admin logout
-      console.log('Admin logout')
+      // Handle admin logout - clear all authentication data
+      localStorage.removeItem('isLoggedIn')
+      localStorage.removeItem('userRole')
+      localStorage.removeItem('userEmail')
+      localStorage.removeItem('adminData')
+      localStorage.removeItem('adminToken')
+      localStorage.removeItem('adminUser')
+      
+      // Show success toast
+      toastUtils.success("Admin logged out successfully")
+      
+      // Redirect to login page after a short delay
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 1000)
     } else {
       // Handle staff logout
       localStorage.removeItem('staffUser')
@@ -88,15 +102,6 @@ export function Navbar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem className="cursor-pointer">
-                <User className="w-4 h-4 mr-2" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <Settings className="w-4 h-4 mr-2" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer text-destructive" onClick={handleLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 <span>Logout</span>

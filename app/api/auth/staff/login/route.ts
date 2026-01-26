@@ -2,10 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { authRateLimit } from '@/lib/rate-limit'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_SECRET = process.env.JWT_SECRET
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required')
+}
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = authRateLimit(request)
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
   try {
     const { email, password } = await request.json()
 
@@ -45,7 +56,7 @@ export async function POST(request: NextRequest) {
         role: staff.role,
         type: 'staff'
       },
-      JWT_SECRET,
+      JWT_SECRET!, // Type assertion since we validated above
       { expiresIn: '24h' }
     )
 

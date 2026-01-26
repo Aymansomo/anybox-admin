@@ -103,10 +103,6 @@ export default function StaffLoginPage() {
               >
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
-
-              <div className="text-center text-sm text-muted-foreground pt-2">
-                Demo: Any credentials will work for staff login
-              </div>
             </form>
           </CardContent>
         </Card>

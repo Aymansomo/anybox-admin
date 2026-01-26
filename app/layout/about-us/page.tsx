@@ -15,7 +15,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { supabase } from "@/lib/supabase"
-import { toast } from "sonner"
+import { toast } from "@/hooks/use-toast"
+import { toastUtils, adminToasts } from "@/lib/toast-utils"
 
 interface AboutUsItem {
   id: number
@@ -86,7 +87,7 @@ export default function AboutUsPage() {
       setAboutUsItems(data && Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching about us items:', error)
-      toast.error("Failed to fetch about us items")
+      toastUtils.error("Failed to fetch about us items")
     } finally {
       setLoading(false)
     }
@@ -110,7 +111,7 @@ export default function AboutUsPage() {
       return publicUrl
     } catch (error) {
       console.error("Error uploading image:", error)
-      toast.error("Failed to upload image")
+      toastUtils.error("Failed to upload image")
       return null
     }
   }
@@ -145,7 +146,7 @@ export default function AboutUsPage() {
           console.error('Update error details:', error)
           throw new Error(`Update failed: ${error.message || JSON.stringify(error)}`)
         }
-        toast.success("About Us item updated successfully")
+        toastUtils.success("About Us item updated successfully")
       } else {
         const { error, data: result } = await supabase
           .from("about_banner")
@@ -157,7 +158,7 @@ export default function AboutUsPage() {
           console.error('Insert error details:', error)
           throw new Error(`Insert failed: ${error.message || JSON.stringify(error)}`)
         }
-        toast.success("About Us item created successfully")
+        toastUtils.success("About Us item created successfully")
       }
 
       setIsDialogOpen(false)
@@ -169,7 +170,7 @@ export default function AboutUsPage() {
       console.error("Error saving about us item:", error)
       console.error("Error type:", typeof error)
       console.error("Error message:", error instanceof Error ? error.message : 'No message')
-      toast.error(`Failed to save about us item: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      toastUtils.error(`Failed to save about us item: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -217,6 +218,28 @@ export default function AboutUsPage() {
     setImagePreview("")
     setImageFile(null)
     setIsDialogOpen(true)
+  }
+
+  const handleDelete = async (id: number) => {
+    if (confirm('Are you sure you want to delete this About Us item?')) {
+      try {
+        const { error } = await supabase
+          .from("about_banner")
+          .delete()
+          .eq("id", id)
+
+        if (error) {
+          console.error('Delete error:', error)
+          throw new Error(`Delete failed: ${error.message}`)
+        }
+        
+        toastUtils.success("About Us item deleted successfully")
+        fetchAboutUsItems()
+      } catch (error) {
+        console.error("Error deleting about us item:", error)
+        toastUtils.error(`Failed to delete about us item: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+    }
   }
 
   if (loading) {
@@ -545,10 +568,10 @@ export default function AboutUsPage() {
                           />
                         )}
                         <div className="flex flex-col gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Button variant="destructive" size="sm">
+                          <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>

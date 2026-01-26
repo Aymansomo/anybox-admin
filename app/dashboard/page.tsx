@@ -82,12 +82,12 @@ export default function DashboardPage() {
           .gte('created_at', new Date().toISOString().split('T')[0])
       ])
 
-      // Get low stock products
+      // Get low stock products (less than 10 units)
       const lowStockResult = await supabase
         .from('products')
         .select('id')
+        .lt('stock', 10)
         .eq('in_stock', true)
-        .limit(20) // Get first 20 products for low stock simulation
 
       if (ordersResult.error || productsResult.error || customersResult.error || todayOrdersResult.error || lowStockResult.error) {
         throw new Error('Failed to fetch dashboard data')
@@ -100,11 +100,49 @@ export default function DashboardPage() {
       const ordersToday = todayOrdersResult.data?.length || 0
       const lowStockCount = lowStockResult.data?.length || 0
 
-      // Simulate some changes (in real app, you'd compare with previous period)
-      const ordersChange = Math.floor(Math.random() * 20) - 10 // -10 to +10
-      const revenueChange = Math.floor(Math.random() * 15) - 5 // -5% to +10%
-      const productsChange = Math.floor(Math.random() * 10) - 5 // -5% to +5%
-      const customersChange = Math.floor(Math.random() * 25) - 10 // -10% to +15%
+      // Calculate real changes compared to previous 30 days
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      
+      const [previousOrdersResult, previousRevenueResult] = await Promise.all([
+        supabase
+          .from('orders')
+          .select('id')
+          .eq('status', 'delivered')
+          .gte('created_at', thirtyDaysAgo.toISOString().split('T')[0])
+          .lt('created_at', new Date().toISOString().split('T')[0]),
+          
+        supabase
+          .from('orders')
+          .select('total_amount')
+          .eq('status', 'delivered')
+          .gte('created_at', thirtyDaysAgo.toISOString().split('T')[0])
+          .lt('created_at', new Date().toISOString().split('T')[0])
+      ])
+      
+      const previousOrdersCount = previousOrdersResult.data?.length || 0
+      const previousRevenue = previousRevenueResult.data?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0
+      
+      // Calculate percentage changes
+      const ordersChange = previousOrdersCount > 0 ? Math.round(((ordersToday - previousOrdersCount) / previousOrdersCount) * 100) : 0
+      const revenueChange = previousRevenue > 0 ? Math.round(((totalRevenue - previousRevenue) / previousRevenue) * 100) : 0
+      
+      // For products and customers, show growth since beginning of month
+      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+      const [newProductsResult, newCustomersResult] = await Promise.all([
+        supabase
+          .from('products')
+          .select('id')
+          .gte('created_at', monthStart.toISOString()),
+          
+        supabase
+          .from('customers')
+          .select('id')
+          .gte('created_at', monthStart.toISOString())
+      ])
+      
+      const productsChange = Math.round(((newProductsResult.data?.length || 0) / Math.max(totalProducts, 1)) * 100)
+      const customersChange = Math.round(((newCustomersResult.data?.length || 0) / Math.max(totalCustomers, 1)) * 100)
 
       setStats({
         totalOrders,
@@ -202,9 +240,9 @@ export default function DashboardPage() {
           <StatsCard
             title="Orders Today"
             value={formatValue(stats.ordersToday)}
-            change={`${Math.floor(Math.random() * 20) - 10 >= 0 ? '+' : ''}${Math.floor(Math.random() * 20) - 10}`}
+            change={`${stats.ordersChange >= 0 ? '+' : ''}${stats.ordersChange}% vs yesterday`}
             icon={<Clock className="w-5 h-5" />}
-            trend="up"
+            trend={stats.ordersChange >= 0 ? "up" : "down"}
           />
           <StatsCard
             title="Low Stock Items"

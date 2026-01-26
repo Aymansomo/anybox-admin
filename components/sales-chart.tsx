@@ -6,7 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { supabase } from "@/lib/supabase"
 
 interface SalesData {
-  month: string
+  date: string
   sales: number
   revenue: number
 }
@@ -25,7 +25,10 @@ export function SalesChart() {
       setLoading(true)
       setError(null)
 
-      // Get sales data from orders table
+      // Get last 30 days of data
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      
       const { data: ordersData, error } = await supabase
         .from('orders')
         .select(`
@@ -33,7 +36,7 @@ export function SalesChart() {
           total_amount,
           status
         `)
-        .gte('created_at', new Date(new Date().getFullYear(), 0, 1).toISOString()) // Start from current year
+        .gte('created_at', thirtyDaysAgo.toISOString())
         .order('created_at', { ascending: true })
 
       if (error) {
@@ -42,32 +45,39 @@ export function SalesChart() {
         return
       }
 
-      // Group orders by month and calculate sales/revenue
-      const monthlyData = ordersData?.reduce((acc: { [key: string]: SalesData }, order) => {
-        const month = new Date(order.created_at).toLocaleString('default', { month: 'short' })
+      // Group orders by day and calculate sales/revenue
+      const dailyData = ordersData?.reduce((acc: { [key: string]: SalesData }, order) => {
+        const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
         
-        if (!acc[month]) {
-          acc[month] = {
-            month,
+        if (!acc[date]) {
+          acc[date] = {
+            date,
             sales: 0,
             revenue: 0
           }
         }
 
-        // Only count completed/paid orders
-        if (order.status === 'delivered' || order.status === 'shipped') {
-          acc[month].sales += 1
-          acc[month].revenue += order.total_amount
+        // Count orders with meaningful statuses (not cancelled/refunded)
+        if (order.status !== 'cancelled' && order.status !== 'refunded') {
+          acc[date].sales += 1
+          acc[date].revenue += order.total_amount || 0
         }
 
         return acc
       }, {}) || {}
 
-      // Convert to array and fill missing months with zeros
-      const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      const data = allMonths.map(month => 
-        monthlyData[month] || { month, sales: 0, revenue: 0 }
-      )
+      // Generate all dates for the last 30 days
+      const dates = []
+      const today = new Date()
+      
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(today)
+        date.setDate(date.getDate() - i)
+        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        dates.push(dailyData[dateStr] || { date: dateStr, sales: 0, revenue: 0 })
+      }
+      
+      const data = dates
 
       setData(data)
     } catch (err) {
@@ -128,7 +138,8 @@ export function SalesChart() {
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
             <XAxis 
               stroke="var(--color-muted-foreground)" 
-              style={{ fontSize: "12px" }} 
+              style={{ fontSize: "12px" }}
+              dataKey="date"
             />
             <YAxis 
               stroke="var(--color-muted-foreground)" 
@@ -136,9 +147,12 @@ export function SalesChart() {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "var(--color-card)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "var(--radius)",
+                backgroundColor: "#ffffff",
+                border: "1px solid #e2e8f0",
+                borderRadius: "6px",
+                color: "#1f2937",
+                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                fontSize: "14px"
               }}
               formatter={(value: any, name: any) => {
                 if (name === 'Revenue') {

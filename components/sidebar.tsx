@@ -4,7 +4,7 @@ import type React from "react"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Package, ShoppingCart, Users, Bell, Settings, Menu, X, FolderOpen, Palette, Info, ChevronDown, ChevronRight } from "lucide-react"
+import { LayoutDashboard, Package, ShoppingCart, Users, Bell, Settings, Menu, X, FolderOpen, Palette, Info, ChevronDown, ChevronRight, Mail } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -43,6 +43,12 @@ const adminNavItems: NavItem[] = [
         icon: <Info className="w-4 h-4" />,
         adminOnly: true,
       },
+      {
+        label: "Footer",
+        href: "/admin/footer",
+        icon: <Mail className="w-4 h-4" />,
+        adminOnly: true,
+      },
     ],
   },
   {
@@ -66,12 +72,6 @@ const adminNavItems: NavItem[] = [
     label: "Staff",
     href: "/staff",
     icon: <Users className="w-5 h-5" />,
-    adminOnly: true,
-  },
-  {
-    label: "Settings",
-    href: "/settings",
-    icon: <Settings className="w-5 h-5" />,
     adminOnly: true,
   },
 ]

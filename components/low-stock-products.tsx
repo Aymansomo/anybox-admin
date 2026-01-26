@@ -43,9 +43,9 @@ export function LowStockProducts() {
           )
         `)
         .eq('in_stock', true)
-        .lte('stock', 10) // Only get products with 10 or less units
+        .lt('stock', 10) // Only get products with less than 10 units
         .order('stock', { ascending: true }) // Show lowest stock first
-        .order('created_at', { ascending: false })
+        .limit(20) // Limit to 20 items
 
       if (error) {
         console.error('Error fetching low stock products:', error)

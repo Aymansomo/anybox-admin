@@ -143,9 +143,12 @@ export function OrdersChart() {
             </Pie>
             <Tooltip
               contentStyle={{
-                backgroundColor: "var(--color-card)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "var(--radius)",
+                backgroundColor: "#ffffff",
+                border: "1px solid #e2e8f0",
+                borderRadius: "6px",
+                color: "#1f2937",
+                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                fontSize: "14px"
               }}
             />
           </PieChart>
