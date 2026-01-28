@@ -495,7 +495,7 @@ export function ProductForm({ productId }: ProductFormProps) {
                     <img
                       src={mainImagePreview}
                       alt="Main product image"
-                      className="w-full h-48 object-cover rounded-lg border border-border"
+                      className="w-full h-48 object-contain rounded-lg border border-border"
                     />
                     <button
                       type="button"
@@ -538,7 +538,7 @@ export function ProductForm({ productId }: ProductFormProps) {
                         <img
                           src={preview}
                           alt={`Gallery image ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg border border-border"
+                          className="w-full h-32 object-contain rounded-lg border border-border"
                         />
                         <button
                           type="button"

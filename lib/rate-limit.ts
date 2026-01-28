@@ -15,7 +15,9 @@ export function createRateLimit(config: RateLimitConfig) {
     // Get client IP from various headers (works in production and behind proxies)
     const forwarded = request.headers.get('x-forwarded-for')
     const realIp = request.headers.get('x-real-ip')
-    const identifier = forwarded?.split(',')[0] || realIp || 'unknown'
+    const requestIp = (request as any).ip as string | undefined
+    const userAgent = request.headers.get('user-agent')
+    const identifier = forwarded?.split(',')[0]?.trim() || realIp || requestIp || userAgent || 'unknown'
     const now = Date.now()
     const windowStart = now - config.windowMs
 
@@ -74,7 +76,7 @@ export function createRateLimit(config: RateLimitConfig) {
 // Pre-configured rate limiters for different use cases
 export const authRateLimit = createRateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 5, // 5 attempts per 15 minutes
+  maxRequests: process.env.NODE_ENV === 'production' ? 5 : 50, // 5 attempts per 15 minutes
   message: 'Too many login attempts. Please try again later.'
 })
 

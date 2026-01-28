@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +16,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+
+  useEffect(() => {
+    const staffUser = localStorage.getItem("staffUser")
+    if (!staffUser) return
+
+    try {
+      const staff = JSON.parse(staffUser)
+      router.replace(staff.role === "manager" ? "/manager-dashboard" : "/staff-dashboard")
+    } catch {
+      localStorage.removeItem("staffUser")
+      localStorage.removeItem("staffToken")
+    }
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

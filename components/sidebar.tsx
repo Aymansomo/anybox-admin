@@ -49,6 +49,12 @@ const adminNavItems: NavItem[] = [
         icon: <Mail className="w-4 h-4" />,
         adminOnly: true,
       },
+      {
+        label: "Contact Us",
+        href: "/layout/contact-us",
+        icon: <Mail className="w-4 h-4" />,
+        adminOnly: true,
+      },
     ],
   },
   {
